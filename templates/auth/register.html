@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}إنشاء حساب - مفقود{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card p-4">
+                <h3 class="fw-bold text-center mb-4"><i class="bi bi-person-plus text-success"></i> إنشاء حساب جديد</h3>
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">اسم المستخدم *</label>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">الاسم الكامل *</label>
+                            <input type="text" name="full_name" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">البريد الإلكتروني *</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">البريد الجامعي</label>
+                            <input type="email" name="university_email" class="form-control" placeholder="اختياري">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">رقم الجوال *</label>
+                            <input type="text" name="phone_number" class="form-control" required placeholder="05XXXXXXXX">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">كلمة المرور *</label>
+                            <input type="password" name="password" class="form-control" required minlength="6">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">تأكيد كلمة المرور *</label>
+                            <input type="password" name="confirm_password" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success w-100 fw-bold">إنشاء الحساب</button>
+                       
+                        </div>
+                   
+</div>
+                    </div>
+                </form>
+                     <hr class="my-4"> <div class="text-center">
+                          <p class="text-muted small mb-3">أو سجل حسابك بضغطة زر عبر:</p>
+                            <a href="{{ url_for('auth.google_login') }}" class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center py-2">
+                        <img src="https://img.icons8.com/color/24/000000/google-logo.png" class="me-2" alt="Google Logo">
+        سجل بواسطة Google
+    </a>
+                <hr>
+                <p class="text-center mb-0">لديك حساب بالفعل؟ <a href="{{ url_for('auth.login') }}">سجّل الدخول</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

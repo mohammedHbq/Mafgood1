@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}نشر غرض - مفقود{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card p-4">
+                <h3 class="fw-bold mb-4"><i class="bi bi-plus-circle text-primary"></i> نشر غرض جديد</h3>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">نوع الغرض *</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="item_type" id="typeLost" value="lost" checked>
+                                <label class="form-check-label text-danger fw-bold" for="typeLost">🔴 ضائع</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="item_type" id="typeFound" value="found">
+                                <label class="form-check-label text-success fw-bold" for="typeFound">🟢 موجود (وجدته)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">اسم الغرض *</label>
+                        <input type="text" name="item_name" class="form-control" placeholder="مثال: محفظة جلدية سوداء" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">الفئة *</label>
+                        <select name="category" class="form-select" required>
+                            <option value="">اختر الفئة</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.value }}">{{ cat.value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">الموقع / المنطقة</label>
+                        <input type="text" name="location" class="form-control" placeholder="مثال: مكتبة الجامعة، الدور الثاني">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">الوصف التفصيلي</label>
+                        <textarea name="description" class="form-control" rows="4" placeholder="اذكر تفاصيل تساعد على تعريف الغرض..."></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">صورة الغرض</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <div class="form-text">الصور تساعد الذكاء الاصطناعي على إيجاد تطابقات أدق.</div>
+                    </div>
+                    <button type="submit" class="btn btn-accent w-100 fw-bold fs-5">
+                        <i class="bi bi-send"></i> نشر الغرض
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

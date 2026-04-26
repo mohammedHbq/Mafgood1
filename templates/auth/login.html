@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}تسجيل الدخول - مفقود{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card p-4">
+                <h3 class="fw-bold text-center mb-4"><i class="bi bi-box-arrow-in-right text-primary"></i> تسجيل الدخول</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">اسم المستخدم</label>
+                        <input type="text" name="username" class="form-control" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">كلمة المرور</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="remember" class="form-check-input" id="remember">
+                        <label class="form-check-label" for="remember">تذكرني</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">دخول</button>
+                </form>
+                <hr>
+                <div class="d-grid">
+                    <a href="{{ url_for('auth.google_login') }}" class="btn btn-outline-dark btn-lg">
+                        <img src="https://www.google.com/favicon.ico" width="20" class="me-2">
+                        تسجيل الدخول بـ Google
+                    </a>
+                </div>
+                <hr>
+                <p class="text-center mb-0">ليس لديك حساب؟ <a href="{{ url_for('auth.register') }}">أنشئ حساباً</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

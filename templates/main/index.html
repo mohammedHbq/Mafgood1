@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}مفقود - الصفحة الرئيسية{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section style="background: linear-gradient(135deg, #1a3c5e 0%, #0d2137 100%); color: #fff; padding: 80px 0;">
+    <div class="container text-center">
+        <h1 style="font-size:3rem; font-weight:900;">ضاع منك شيء؟ 🔍</h1>
+        <p class="lead mt-3" style="opacity:.85;">منصة <strong style="color:#f0a500;">مفقود</strong> تربط أصحاب الأغراض الضائعة بمن وجدها — بذكاء اصطناعي.</p>
+        <div class="mt-4 d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ url_for('items.create_item') }}" class="btn btn-accent btn-lg px-5">
+                <i class="bi bi-plus-circle"></i> سجّل غرضك
+            </a>
+            <a href="{{ url_for('items.list_items') }}" class="btn btn-outline-light btn-lg px-5">
+                <i class="bi bi-grid"></i> تصفح الأغراض
+            </a>
+        </div>
+        <div class="row mt-5 justify-content-center g-4">
+            <div class="col-auto">
+                <div class="text-center px-4">
+                    <h2 style="color:#f0a500; font-weight:900;">{{ total_items }}+</h2>
+                    <p style="opacity:.8;">غرض مسجّل</p>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="text-center px-4">
+                    <h2 style="color:#28a745; font-weight:900;">{{ resolved }}+</h2>
+                    <p style="opacity:.8;">قضية محلولة</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Lost -->
+<section class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold"><span class="badge bg-danger">ضائع</span> أحدث الأغراض المفقودة</h3>
+        <a href="{{ url_for('items.list_items', type='lost') }}" class="btn btn-outline-danger btn-sm">عرض الكل</a>
+    </div>
+    <div class="row g-4">
+        {% for item in recent_lost %}
+        <div class="col-md-4 col-sm-6">
+            <div class="card h-100">
+                {% if item.image_path %}
+                <img src="{{ url_for('static', filename=item.image_path) }}" class="card-img-top" style="height:180px;object-fit:cover;" alt="{{ item.item_name }}">
+                {% else %}
+                <div style="height:180px;background:#e9ecef;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-image text-muted" style="font-size:3rem;"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <span class="badge bg-danger mb-2">ضائع</span>
+                    <h5 class="card-title fw-bold">{{ item.item_name }}</h5>
+                    <p class="text-muted small"><i class="bi bi-geo-alt"></i> {{ item.location or 'غير محدد' }}</p>
+                    <a href="{{ url_for('items.item_detail', item_id=item.id) }}" class="btn btn-sm btn-outline-primary">عرض التفاصيل</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted">لا توجد أغراض مفقودة حالياً.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Recent Found -->
+<section class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold"><span class="badge bg-success">موجود</span> أحدث الأغراض الموجودة</h3>
+        <a href="{{ url_for('items.list_items', type='found') }}" class="btn btn-outline-success btn-sm">عرض الكل</a>
+    </div>
+    <div class="row g-4">
+        {% for item in recent_found %}
+        <div class="col-md-4 col-sm-6">
+            <div class="card h-100">
+                {% if item.image_path %}
+                <img src="{{ url_for('static', filename=item.image_path) }}" class="card-img-top" style="height:180px;object-fit:cover;" alt="{{ item.item_name }}">
+                {% else %}
+                <div style="height:180px;background:#e9ecef;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-image text-muted" style="font-size:3rem;"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <span class="badge bg-success mb-2">موجود</span>
+                    <h5 class="card-title fw-bold">{{ item.item_name }}</h5>
+                    <p class="text-muted small"><i class="bi bi-geo-alt"></i> {{ item.location or 'غير محدد' }}</p>
+                    <a href="{{ url_for('items.item_detail', item_id=item.id) }}" class="btn btn-sm btn-outline-success">عرض التفاصيل</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted">لا توجد أغراض موجودة حالياً.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- How it works -->
+<section style="background:#fff; padding: 60px 0; margin-top:60px;">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-5">كيف تعمل المنصة؟</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="p-4">
+                    <div style="font-size:3rem; color:#1a3c5e;">📝</div>
+                    <h5 class="fw-bold mt-3">سجّل الغرض</h5>
+                    <p class="text-muted">أضف تفاصيل الغرض المفقود أو الذي وجدته مع صورة ومكان.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4">
+                    <div style="font-size:3rem; color:#f0a500;">🤖</div>
+                    <h5 class="fw-bold mt-3">الذكاء الاصطناعي يبحث</h5>
+                    <p class="text-muted">يحلل النظام الأغراض المسجلة ويجد أفضل التطابقات تلقائياً.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4">
+                    <div style="font-size:3rem; color:#28a745;">✅</div>
+                    <h5 class="fw-bold mt-3">استرد غرضك</h5>
+                    <p class="text-muted">تواصل مع صاحب الغرض وأكمل عملية الاسترداد.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

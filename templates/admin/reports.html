@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}البلاغات - مفقود{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="fw-bold mb-4"><i class="bi bi-flag text-danger"></i> جميع البلاغات</h2>
+
+    <!-- Filter -->
+    <form method="GET" class="d-flex gap-2 mb-3">
+        <select name="status" class="form-select" style="max-width:200px;">
+            <option value="">كل الحالات</option>
+            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>قيد المراجعة</option>
+            <option value="actioned" {% if status_filter == 'actioned' %}selected{% endif %}>تم اتخاذ الإجراء</option>
+            <option value="dismissed" {% if status_filter == 'dismissed' %}selected{% endif %}>مرفوض</option>
+        </select>
+        <button type="submit" class="btn btn-outline-primary">فلتر</button>
+    </form>
+
+    <div class="card p-3">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr><th>#</th><th>السبب</th><th>الغرض</th><th>المُبلِّغ</th><th>التاريخ</th><th>الحالة</th><th>الإجراء</th></tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>{{ report.id }}</td>
+                        <td style="max-width:200px;">{{ report.reason[:80] }}{% if report.reason|length > 80 %}...{% endif %}</td>
+                        <td><a href="{{ url_for('items.item_detail', item_id=report.item_id) }}">#{{ report.item_id }} {% if report.item %}— {{ report.item.item_name[:20] }}{% endif %}</a></td>
+                        <td>
+                            <a href="{{ url_for('admin.user_profile', user_id=report.reporter_id) }}">{{ report.reporter.username }}</a>
+                        </td>
+                        <td class="small">{{ report.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if report.status == 'pending' %}<span class="badge bg-warning text-dark">قيد المراجعة</span>
+                            {% elif report.status == 'actioned' %}<span class="badge bg-success">تم اتخاذ الإجراء</span>
+                            {% else %}<span class="badge bg-secondary">مرفوض</span>{% endif %}
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin.update_report_status', report_id=report.id) }}" class="d-inline">
+                                <input type="hidden" name="status" value="actioned">
+                                <button class="btn btn-xs btn-success" style="font-size:11px;padding:2px 8px;">تم الإجراء</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin.update_report_status', report_id=report.id) }}" class="d-inline">
+                                <input type="hidden" name="status" value="dismissed">
+                                <button class="btn btn-xs btn-secondary" style="font-size:11px;padding:2px 8px;">رفض</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">لا توجد بلاغات حالياً.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

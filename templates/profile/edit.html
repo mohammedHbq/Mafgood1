@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}تعديل الملف الشخصي - مفقود{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card p-4">
+                <h3 class="fw-bold mb-4"><i class="bi bi-pencil-square text-primary"></i> تعديل الملف الشخصي</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">الاسم الكامل</label>
+                        <input type="text" name="full_name" class="form-control" value="{{ user.full_name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">البريد الجامعي</label>
+                        <input type="email" name="university_email" class="form-control" value="{{ user.university_email or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">رقم الجوال</label>
+                        <input type="text" name="phone_number" class="form-control" value="{{ user.phone_number or '' }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">حفظ التغييرات</button>
+                </form>
+                <a href="{{ url_for('profile.my_profile') }}" class="btn btn-outline-secondary w-100 mt-2">إلغاء</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
