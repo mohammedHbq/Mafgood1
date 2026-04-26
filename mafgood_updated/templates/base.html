@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}مفقود - منصة الأغراض الضائعة{% endblock %}</title>
+
+    <!-- Bootstrap 5 RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Google Fonts Arabic -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary:   #1a3c5e;
+            --accent:    #f0a500;
+            --success:   #28a745;
+            --danger:    #dc3545;
+            --bg-light:  #f8f9fa;
+            --text-dark: #212529;
+        }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg-light); color: var(--text-dark); }
+        .navbar { background: var(--primary) !important; }
+        .navbar-brand { font-weight: 900; font-size: 1.5rem; color: var(--accent) !important; }
+        .nav-link { color: rgba(255,255,255,.85) !important; font-weight: 600; }
+        .nav-link:hover { color: var(--accent) !important; }
+        .btn-accent { background: var(--accent); color: #fff; font-weight: 700; border: none; }
+        .btn-accent:hover { background: #d4920a; color: #fff; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+        .badge-lost  { background: #dc3545; }
+        .badge-found { background: #28a745; }
+        footer { background: var(--primary); color: rgba(255,255,255,.7); padding: 2rem 0; margin-top: 4rem; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">
+            <i class="bi bi-search-heart-fill"></i> مفقود
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}"><i class="bi bi-house"></i> الرئيسية</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('items.list_items') }}"><i class="bi bi-grid"></i> الأغراض</a></li>
+                {% if current_user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('items.create_item') }}"><i class="bi bi-plus-circle"></i> نشر غرض</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('items.search_by_image') }}"><i class="bi bi-camera"></i> بحث بالصورة</a></li>
+                {% endif %}
+            </ul>
+            <ul class="navbar-nav">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.is_admin %}
+                    <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-shield-check"></i> لوحة الإدارة</a></li>
+                    {% endif %}
+                    <!-- تنبيهات -->
+                    {% set unread = current_user.notifications | selectattr('is_read', 'equalto', false) | list %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell"></i>
+                            {% if unread|length > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:10px;">{{ unread|length }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-start" style="min-width:300px;max-height:350px;overflow-y:auto;">
+                            {% if current_user.notifications %}
+                                {% for n in (current_user.notifications | sort(attribute='created_at', reverse=True))[:10] %}
+                                {% if n.link %}
+                                <li>
+                                    <a class="dropdown-item small {% if not n.is_read %}fw-bold{% endif %}" href="{{ n.link }}" style="white-space:normal;">
+                                        <span class="text-muted" style="font-size:10px;">{{ n.created_at.strftime('%Y-%m-%d %H:%M') }}</span><br>
+                                        {{ n.message|safe }}
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="dropdown-item small {% if not n.is_read %}fw-bold{% endif %}" style="white-space:normal;">
+                                    <span class="text-muted" style="font-size:10px;">{{ n.created_at.strftime('%Y-%m-%d %H:%M') }}</span><br>
+                                    {{ n.message|safe }}
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="{{ url_for('admin.mark_all_read') }}" class="px-3 mb-2">
+                                        <button class="btn btn-sm btn-outline-secondary w-100">تحديد الكل كمقروء</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-center small" href="{{ url_for('profile.notifications') }}">عرض كل التنبيهات</a>
+                                </li>
+                            {% else %}
+                            <li class="dropdown-item text-muted small">لا توجد تنبيهات</li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {{ current_user.full_name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-start">
+                            <li><a class="dropdown-item" href="{{ url_for('profile.my_profile') }}"><i class="bi bi-person"></i> ملفي الشخصي</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile.messages') }}"><i class="bi bi-chat-dots"></i> الرسائل</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile.edit_profile') }}"><i class="bi bi-pencil"></i> تعديل الملف</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-left"></i> تسجيل الخروج</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}"><i class="bi bi-box-arrow-in-right"></i> دخول</a></li>
+                    <li class="nav-item"><a class="btn btn-accent ms-2" href="{{ url_for('auth.register') }}">إنشاء حساب</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Flash Messages -->
+<div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<!-- Content -->
+{% block content %}{% endblock %}
+
+<!-- Footer -->
+<footer>
+    <div class="container text-center">
+        <p class="mb-1"><strong class="text-warning">مفقود</strong> — منصة ذكية لاسترداد الأغراض الضائعة</p>
+        <p class="small mb-0">جميع الحقوق محفوظة © 2024</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

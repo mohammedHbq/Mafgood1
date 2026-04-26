@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}الرسائل - لوحة الإدارة{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="fw-bold mb-4"><i class="bi bi-chat-dots text-warning"></i> إدارة الرسائل</h2>
+
+    <form method="GET" class="row g-2 mb-4">
+        <div class="col-md-3">
+            <input type="text" name="item_id" class="form-control" placeholder="بحث برقم الغرض" value="{{ item_id }}">
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="user_id" class="form-control" placeholder="بحث برقم المستخدم" value="{{ user_id }}">
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-primary w-100">فلتر</button>
+        </div>
+        <div class="col-md-3 text-md-end">
+            <a href="{{ url_for('admin.manage_messages') }}" class="btn btn-secondary w-100">إظهار الكل</a>
+        </div>
+    </form>
+
+    <div class="card p-3">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>الغرض</th>
+                        <th>المرسل</th>
+                        <th>المستقبل</th>
+                        <th>النص</th>
+                        <th>التاريخ</th>
+                        <th>الإجراء</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in messages %}
+                    <tr>
+                        <td>{{ message.id }}</td>
+                        <td>
+                            <a href="{{ url_for('items.item_detail', item_id=message.item_id) }}">#{{ message.item_id }}</a>
+                        </td>
+                        <td><a href="{{ url_for('admin.user_profile', user_id=message.sender_id) }}">{{ message.sender.full_name or message.sender.username }}</a></td>
+                        <td><a href="{{ url_for('admin.user_profile', user_id=message.receiver_id) }}">{{ message.receiver.full_name or message.receiver.username }}</a></td>
+                        <td style="max-width:300px; white-space: normal;">{{ message.body[:80] }}{% if message.body|length > 80 %}...{% endif %}</td>
+                        <td class="small text-muted">{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="d-flex gap-2">
+                            <a href="{{ url_for('admin.message_thread', message_id=message.id) }}" class="btn btn-sm btn-outline-primary">عرض الدردشة</a>
+                            <form method="POST" action="{{ url_for('admin.delete_message', message_id=message.id) }}" onsubmit="return confirm('هل أنت متأكد من حذف هذه الرسالة؟');">
+                                <button class="btn btn-sm btn-outline-danger">حذف</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">لا توجد رسائل.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

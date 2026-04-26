@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}لوحة الإدارة - مفقود{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="fw-bold mb-4"><i class="bi bi-shield-check text-warning"></i> لوحة الإدارة</h2>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card p-3 text-center border-primary">
+                <h3 class="fw-bold text-primary mb-0">{{ stats.total_users }}</h3>
+                <small class="text-muted">إجمالي المستخدمين</small>
+                <div class="mt-1 small">
+                    <span class="badge bg-success">نشط: {{ stats.active_users }}</span>
+                    <span class="badge bg-warning text-dark">موقوف: {{ stats.suspended_users }}</span>
+                    <span class="badge bg-danger">محظور: {{ stats.blocked_users }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card p-3 text-center border-info">
+                <h3 class="fw-bold text-info mb-0">{{ stats.total_items }}</h3>
+                <small class="text-muted">إجمالي الأغراض</small>
+                <div class="mt-1 small">
+                    <span class="badge bg-secondary">لم يُعثر: {{ stats.not_found_items }}</span>
+                    <span class="badge bg-success">وُجد صاحبه: {{ stats.found_items }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card p-3 text-center border-danger">
+                <h3 class="fw-bold text-danger mb-0">{{ stats.pending_reports }}</h3>
+                <small class="text-muted">بلاغات قيد المراجعة</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card p-3 text-center border-secondary">
+                <h3 class="fw-bold mb-0">{{ stats.total_users + stats.total_items }}</h3>
+                <small class="text-muted">إجمالي السجلات</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="d-flex gap-2 flex-wrap mb-4">
+        <a href="{{ url_for('admin.manage_users') }}" class="btn btn-primary"><i class="bi bi-people"></i> إدارة المستخدمين</a>
+        <a href="{{ url_for('admin.view_reports') }}" class="btn btn-danger"><i class="bi bi-flag"></i> البلاغات {% if stats.pending_reports %}<span class="badge bg-light text-danger">{{ stats.pending_reports }}</span>{% endif %}</a>
+        <a href="{{ url_for('admin.manage_messages') }}" class="btn btn-warning"><i class="bi bi-chat-dots"></i> إدارة الرسائل {% if stats.total_messages %}<span class="badge bg-light text-warning">{{ stats.total_messages }}</span>{% endif %}</a>
+        <a href="{{ url_for('items.list_items') }}" class="btn btn-secondary"><i class="bi bi-grid"></i> عرض الأغراض</a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Users -->
+        <div class="col-md-5">
+            <div class="card p-3">
+                <h5 class="fw-bold mb-3"><i class="bi bi-people text-primary"></i> آخر المستخدمين</h5>
+                <div class="list-group list-group-flush">
+                    {% for u in recent_users %}
+                    <a href="{{ url_for('admin.user_profile', user_id=u.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
+                        <div>
+                            <strong>{{ u.full_name }}</strong>
+                            <div class="small text-muted">@{{ u.username }}</div>
+                        </div>
+                        {% if u.profile_status == 'active' %}<span class="badge bg-success">نشط</span>
+                        {% elif u.profile_status == 'suspended' %}<span class="badge bg-warning text-dark">موقوف</span>
+                        {% else %}<span class="badge bg-danger">محظور</span>{% endif %}
+                    </a>
+                    {% else %}
+                    <p class="text-muted small">لا يوجد مستخدمون.</p>
+                    {% endfor %}
+                </div>
+                <a href="{{ url_for('admin.manage_users') }}" class="btn btn-sm btn-outline-primary mt-2">عرض الكل</a>
+            </div>
+        </div>
+
+        <!-- Pending Reports -->
+        <div class="col-md-7">
+            <div class="card p-3">
+                <h5 class="fw-bold mb-3"><i class="bi bi-flag text-danger"></i> البلاغات المعلقة</h5>
+                {% if reports %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr><th>السبب</th><th>الغرض</th><th>المُبلِّغ</th><th>الإجراء</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                            <tr>
+                                <td>{{ report.reason[:40] }}...</td>
+                                <td><a href="{{ url_for('items.item_detail', item_id=report.item_id) }}">#{{ report.item_id }}</a></td>
+                                <td>{{ report.reporter.username }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('admin.update_report_status', report_id=report.id) }}" class="d-inline">
+                                        <input type="hidden" name="status" value="actioned">
+                                        <button class="btn btn-xs btn-success" style="font-size:11px;padding:2px 8px;">تم الإجراء</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('admin.update_report_status', report_id=report.id) }}" class="d-inline">
+                                        <input type="hidden" name="status" value="dismissed">
+                                        <button class="btn btn-xs btn-secondary" style="font-size:11px;padding:2px 8px;">رفض</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">لا توجد بلاغات معلقة.</p>
+                {% endif %}
+                <a href="{{ url_for('admin.view_reports') }}" class="btn btn-sm btn-outline-danger mt-2">عرض كل البلاغات</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

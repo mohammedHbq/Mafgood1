@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}الرسائل - مفقود{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h4 class="fw-bold mb-1">الرسائل</h4>
+                        <p class="text-muted mb-0">عرض الرسائل المرسلة والواردة عن الأغراض.</p>
+                    </div>
+                </div>
+
+                {% if threads %}
+                <div class="list-group">
+                    {% for thread in threads %}
+                    <a href="{{ url_for('profile.message_thread', item_id=thread.item.id, partner_id=thread.partner.id) }}" class="list-group-item list-group-item-action mb-2 rounded">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ thread.item.item_name }}</h6>
+                                <p class="small text-muted mb-1">
+                                    {% if thread.last_message.sender_id == current_user.id %}
+                                    أرسلت إلى {{ thread.partner.full_name }}
+                                    {% else %}
+                                    استلمت من {{ thread.partner.full_name }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <small class="text-muted">{{ thread.last_message.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        <p class="mb-1 text-truncate" style="max-width: 100%;">{{ thread.last_message.body }}</p>
+                        <div class="small text-secondary">
+                            <strong>عدد الرسائل:</strong> {{ thread.count }}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-chat-dots fs-1 text-muted"></i>
+                    <p class="mt-3 text-muted">لا توجد رسائل حتى الآن. يمكنك مراسلة صاحب المنتج عند العرض.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

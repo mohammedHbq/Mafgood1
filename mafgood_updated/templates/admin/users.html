@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}إدارة المستخدمين - مفقود{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="fw-bold mb-4"><i class="bi bi-people text-primary"></i> إدارة المستخدمين</h2>
+
+    <!-- Search & Filter -->
+    <form method="GET" class="row g-2 mb-3">
+        <div class="col-md-5">
+            <input type="text" name="q" class="form-control" placeholder="بحث بالاسم أو البريد..." value="{{ search }}">
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">كل الحالات</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>نشط</option>
+                <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>موقوف</option>
+                <option value="blocked" {% if status_filter == 'blocked' %}selected{% endif %}>محظور</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">بحث</button>
+        </div>
+    </form>
+
+    <div class="card p-3">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr><th>#</th><th>الاسم الكامل</th><th>المستخدم</th><th>البريد</th><th>الجوال</th><th>تاريخ التسجيل</th><th>الحالة</th><th>الإجراءات</th></tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.user_profile', user_id=user.id) }}" class="fw-bold text-decoration-none">{{ user.full_name }}</a>
+                            {% if user.is_admin %}<span class="badge bg-warning text-dark ms-1">مسؤول</span>{% endif %}
+                        </td>
+                        <td class="text-muted small">@{{ user.username }}</td>
+                        <td class="small">{{ user.email }}</td>
+                        <td class="small">{{ user.phone_number or '—' }}</td>
+                        <td class="small">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if user.profile_status == 'active' %}<span class="badge bg-success">نشط</span>
+                            {% elif user.profile_status == 'suspended' %}<span class="badge bg-warning text-dark">موقوف</span>
+                            {% else %}<span class="badge bg-danger">محظور</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if not user.is_admin %}
+                            <div class="d-flex gap-1 flex-wrap">
+                                <a href="{{ url_for('admin.user_profile', user_id=user.id) }}" class="btn btn-xs btn-outline-info" style="font-size:11px;padding:2px 8px;"><i class="bi bi-eye"></i> بروفايل</a>
+                                <form method="POST" action="{{ url_for('admin.suspend_account', user_id=user.id) }}" class="d-inline">
+                                    <button class="btn btn-xs btn-warning" style="font-size:11px;padding:2px 8px;">تعليق</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.block_profile', user_id=user.id) }}" class="d-inline">
+                                    <button class="btn btn-xs btn-danger" style="font-size:11px;padding:2px 8px;">حظر</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.activate_account', user_id=user.id) }}" class="d-inline">
+                                    <button class="btn btn-xs btn-success" style="font-size:11px;padding:2px 8px;">تفعيل</button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">مسؤول النظام</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

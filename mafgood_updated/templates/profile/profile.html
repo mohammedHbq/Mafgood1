@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}ملفي الشخصي - مفقود{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card p-4 text-center">
+                <div style="width:80px;height:80px;background:#1a3c5e;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                    <i class="bi bi-person-fill text-white" style="font-size:2.5rem;"></i>
+                </div>
+                <h4 class="fw-bold">{{ user.full_name }}</h4>
+                <p class="text-muted">@{{ user.username }}</p>
+                {% if user.is_admin %}<span class="badge bg-warning text-dark">مسؤول</span>{% endif %}
+                <hr>
+                <p class="text-start"><i class="bi bi-envelope"></i> {{ user.email }}</p>
+                {% if user.university_email %}
+                <p class="text-start"><i class="bi bi-mortarboard"></i> {{ user.university_email }}</p>
+                {% endif %}
+                {% if user.phone_number %}
+                <p class="text-start"><i class="bi bi-telephone"></i> {{ user.phone_number }}</p>
+                {% endif %}
+                <div class="d-grid gap-2 mt-3">
+                    <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> تعديل الملف</a>
+                    <a href="{{ url_for('profile.change_password') }}" class="btn btn-outline-secondary"><i class="bi bi-key"></i> تغيير كلمة المرور</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <h4 class="fw-bold mb-3">أغراضي المنشورة ({{ items|length }})</h4>
+            <div class="row g-3">
+                {% for item in items %}
+                <div class="col-sm-6">
+                    <div class="card p-3">
+                        {% if item.item_type.value == 'lost' %}
+                        <span class="badge bg-danger mb-2">ضائع</span>
+                        {% else %}
+                        <span class="badge bg-success mb-2">موجود</span>
+                        {% endif %}
+                        <h6 class="fw-bold">{{ item.item_name }}</h6>
+                        <p class="text-muted small mb-2"><i class="bi bi-geo-alt"></i> {{ item.location or 'غير محدد' }}</p>
+                        <a href="{{ url_for('items.item_detail', item_id=item.id) }}" class="btn btn-sm btn-outline-primary">عرض</a>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted">لم تنشر أي أغراض بعد. <a href="{{ url_for('items.create_item') }}">أنشر الآن</a></p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}الأغراض - مفقود{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="fw-bold mb-4">🔍 تصفح الأغراض</h2>
+
+    <!-- Search & Filter -->
+    <div class="card p-3 mb-4">
+        <form method="GET" class="row g-3">
+            <div class="col-md-5">
+                <input type="text" name="q" class="form-control" placeholder="ابحث عن غرض..." value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <select name="category" class="form-select">
+                    <option value="">كل الفئات</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="type" class="form-select">
+                    <option value="">الكل</option>
+                    <option value="lost"  {% if selected_type == 'lost'  %}selected{% endif %}>ضائع</option>
+                    <option value="found" {% if selected_type == 'found' %}selected{% endif %}>موجود</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">كل الحالات</option>
+                    {% for stat in statuses %}
+                    <option value="{{ stat.value }}" {% if selected_status == stat.value %}selected{% endif %}>{{ stat.value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> بحث</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- AI Image Search Link -->
+    {% if current_user.is_authenticated %}
+    <div class="alert alert-info d-flex align-items-center gap-3">
+        <i class="bi bi-camera-fill fs-4"></i>
+        <div>
+            <strong>بحث ذكي بالصورة!</strong> ارفع صورة الغرض وسيجد الذكاء الاصطناعي أفضل التطابقات.
+            <a href="{{ url_for('items.search_by_image') }}" class="btn btn-sm btn-info ms-2">جرّب الآن</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Items Grid -->
+    <div class="row g-4">
+        {% for item in items %}
+        <div class="col-md-4 col-sm-6">
+            <div class="card h-100">
+                {% if item.image_path %}
+                <img src="{{ url_for('static', filename=item.image_path) }}" class="card-img-top" style="height:200px;object-fit:cover;" alt="{{ item.item_name }}">
+                {% else %}
+                <div style="height:200px;background:#e9ecef;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-image text-muted" style="font-size:4rem;"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    {% if item.item_type.value == 'lost' %}
+                    <span class="badge bg-danger mb-2">ضائع</span>
+                    {% else %}
+                    <span class="badge bg-success mb-2">موجود</span>
+                    {% endif %}
+                    <span class="badge bg-secondary mb-2">{{ item.category.value }}</span>
+                    {% if item.status.name == 'FOUND_OWNER' %}
+                    <span class="badge bg-success mb-2">{{ item.status.value }}</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark mb-2">{{ item.status.value }}</span>
+                    {% endif %}
+                    <h5 class="card-title fw-bold">{{ item.item_name }}</h5>
+                    <p class="text-muted small mb-1"><i class="bi bi-geo-alt"></i> {{ item.location or 'غير محدد' }}</p>
+                    <p class="text-muted small"><i class="bi bi-clock"></i> {{ item.created_at.strftime('%Y-%m-%d') }}</p>
+                    <a href="{{ url_for('items.item_detail', item_id=item.id) }}" class="btn btn-sm btn-outline-primary">عرض التفاصيل</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-search text-muted" style="font-size:4rem;"></i>
+            <p class="text-muted mt-3 fs-5">لا توجد أغراض مطابقة للبحث</p>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('items.create_item') }}" class="btn btn-accent mt-2">سجّل غرضك الآن</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
