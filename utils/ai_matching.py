@@ -3,7 +3,6 @@ import math
 import json
 from typing import List
  
-# Pillow مدمجة في معظم بيئات Flask — لو مو موجودة: pip install pillow
 try:
     from PIL import Image
     PIL_AVAILABLE = True
@@ -24,13 +23,23 @@ def _load_image(path: str, size=(16, 16)):
         return None
  
  
-def _color_histogram(img, bins=8) -> List[float]:
-    """histogram للألوان R,G,B — vector بطول bins*3."""
+def _get_pixels(img):
+    """متوافق مع كل إصدارات Pillow."""
+    try:
+        return list(img.getdata())
+    except Exception:
+        return list(img.getflattened_data()) if hasattr(img, 'getflattened_data') else []
+ 
+ 
+def _color_histogram(img, bins=16) -> List[float]:
+    """histogram للألوان R,G,B — bins أكثر = دقة أعلى."""
     if img is None:
         return []
-    pixels = list(img.getdata())
-    hist   = [0.0] * (bins * 3)
-    step   = 256 // bins
+    pixels = _get_pixels(img)
+    if not pixels:
+        return []
+    hist = [0.0] * (bins * 3)
+    step = 256 // bins
     for r, g, b in pixels:
         hist[r // step]            += 1
         hist[bins + g // step]     += 1
@@ -39,30 +48,30 @@ def _color_histogram(img, bins=8) -> List[float]:
     return [v / total for v in hist]
  
  
-def _average_hash(img, hash_size=8) -> str:
-    """Average Hash — بصمة الصورة، صور متشابهة = hash قريب."""
+def _average_hash(img, hash_size=16) -> str:
+    """Average Hash بحجم 16×16 لدقة أعلى."""
     if img is None:
         return ''
     small  = img.resize((hash_size, hash_size), Image.LANCZOS).convert('L')
-    pixels = list(small.getdata())
-    avg    = sum(pixels) / len(pixels)
+    pixels = _get_pixels(small)
+    if not pixels:
+        return ''
+    avg = sum(pixels) / len(pixels)
     return ''.join('1' if p > avg else '0' for p in pixels)
  
  
 def _hamming_distance(h1: str, h2: str) -> float:
-    """مسافة هامينج بين hashين — 0 متطابق، 1 مختلف كلياً."""
     if not h1 or not h2 or len(h1) != len(h2):
         return 1.0
     return sum(c1 != c2 for c1, c2 in zip(h1, h2)) / len(h1)
  
  
 def _dominant_colors(img, top=3) -> List[str]:
-    """أبرز الألوان في الصورة كأسماء تقريبية."""
     if img is None:
         return []
-    small      = img.resize((50, 50))
-    pixels     = list(small.getdata())
-    color_map  = {}
+    small    = img.resize((50, 50))
+    pixels   = _get_pixels(small)
+    color_map = {}
     for r, g, b in pixels:
         key = ((r // 64) * 64, (g // 64) * 64, (b // 64) * 64)
         color_map[key] = color_map.get(key, 0) + 1
@@ -70,7 +79,7 @@ def _dominant_colors(img, top=3) -> List[str]:
     sorted_colors = sorted(color_map.items(), key=lambda x: x[1], reverse=True)
     names = []
     for (r, g, b), _ in sorted_colors[:top]:
-        if r > 150 and g < 80  and b < 80:   names.append('red')
+        if   r > 150 and g < 80  and b < 80:  names.append('red')
         elif r < 80  and g > 150 and b < 80:  names.append('green')
         elif r < 80  and g < 80  and b > 150: names.append('blue')
         elif r > 150 and g > 150 and b < 80:  names.append('yellow')
@@ -95,11 +104,11 @@ def _cosine_vec(v1: List[float], v2: List[float]) -> float:
  
  
 def _analyze_image(path: str) -> dict:
-    """تحليل كامل للصورة — hash + histogram + ألوان."""
-    img = _load_image(path)
+    img      = _load_image(path, size=(64, 64))   # حجم أكبر = دقة أعلى
+    img_small = _load_image(path, size=(16, 16))
     return {
-        'avg_hash':        _average_hash(img),
-        'color_hist':      _color_histogram(img),
+        'avg_hash':        _average_hash(img_small, hash_size=16),
+        'color_hist':      _color_histogram(img, bins=16),
         'dominant_colors': _dominant_colors(img),
     }
  
@@ -107,28 +116,28 @@ def _analyze_image(path: str) -> dict:
 def _compare_analyses(a1: dict, a2: dict) -> float:
     """
     يقارن تحليلين:
-      Hash similarity   → 50%
-      Color histogram   → 35%
-      Dominant colors   → 15%
+      Color histogram  → 60%  (الأهم — يميّز نوع الغرض)
+      Hash similarity  → 30%  (الشكل العام)
+      Dominant colors  → 10%  (الألوان الغالبة)
     """
     if not a1 or not a2:
         return 0.0
  
-    hash_sim  = 1.0 - _hamming_distance(a1.get('avg_hash', ''), a2.get('avg_hash', ''))
     hist_sim  = _cosine_vec(a1.get('color_hist', []), a2.get('color_hist', []))
+    hash_sim  = 1.0 - _hamming_distance(a1.get('avg_hash', ''), a2.get('avg_hash', ''))
  
     c1, c2    = set(a1.get('dominant_colors', [])), set(a2.get('dominant_colors', []))
     color_sim = len(c1 & c2) / len(c1 | c2) if (c1 and c2) else 0.0
  
-    return (hash_sim * 0.50) + (hist_sim * 0.35) + (color_sim * 0.15)
+    return (hist_sim * 0.60) + (hash_sim * 0.30) + (color_sim * 0.10)
  
  
 # ── الكلاس الرئيسي ────────────────────────────────────────────────────────────
  
 class AIMatching:
  
-    model_version: str = "2.0.0"
-    threshold: float   = 0.40
+    model_version: str = "2.1.0"
+    threshold: float   = 0.30   # ← خُفِّض من 0.40 إلى 0.30
  
     @staticmethod
     def _tokenize(text: str) -> dict:
@@ -149,15 +158,12 @@ class AIMatching:
             return 0.0
         return dot / (mag1 * mag2)
  
-    # ── image API ─────────────────────────────────────────────────────────
- 
     def request_img_details(self, image_path: str) -> dict:
         if not image_path or not os.path.exists(image_path):
             return {}
         return _analyze_image(image_path)
  
     def get_or_create_image_analysis(self, item) -> dict:
-        """يجلب التحليل المحفوظ في DB أو يُنشئه ويحفظه."""
         if item.image_analysis:
             try:
                 return json.loads(item.image_analysis)
@@ -182,8 +188,6 @@ class AIMatching:
         if isinstance(a1, dict) and isinstance(a2, dict):
             return _compare_analyses(a1, a2)
         return _cosine_vec(a1, a2) if (a1 and a2) else 0.0
- 
-    # ── matching ──────────────────────────────────────────────────────────
  
     def compare_matches(self, target_item, item_list: list) -> list:
         results     = []
@@ -232,7 +236,6 @@ class AIMatching:
         return matches
  
     def search_by_image(self, image_path: str, item_list: list) -> list:
-        """يبحث بصورة مؤقتة في قائمة الأغراض."""
         search_analysis = _analyze_image(image_path)
         if not search_analysis:
             return []
@@ -256,4 +259,3 @@ class AIMatching:
  
 # Singleton
 ai_matcher = AIMatching()
- 
